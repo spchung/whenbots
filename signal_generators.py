@@ -135,21 +135,19 @@ class SimpleMacd:
             
             # print status and kline periodically
             if eventTime.second % 7 == 0:
-                print("Kline Closing Price:")
+                print("\n== Kline Price Update ==")
                 pprint.pprint(msg['k']['c'])
 
                 state = botState.getState()
-                print("BotState")
                 pprint.pprint(state)
 
             if msg["k"]["x"]:
                 
+                print("\n===== 15 MIN KLINE =====")
+
                 klineStartTimeStamp = msg["k"]["x"]
                 klineStartTime = datetime.datetime.fromtimestamp(klineStartTimeStamp/1000)
                 print(klineStartTime.strftime("%m/%d/%Y - %H:%M:%S"))
-
-                # recalculate entire stack
-                print("Original Kline:", msg)
 
                 res = signal.generate(period=1)
                 botState.receive(res[0])

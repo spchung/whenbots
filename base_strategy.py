@@ -17,6 +17,10 @@ class MACDStateMachine:
         self.riskTolerancePercentage = riskTolerancePercentage
         self.stopLossOrderID = None
         self.stopLossOrderPlaced = False
+
+        ## prices
+        self.stopLossPrice = 0.0
+        self.activeOrderPrice = 0.0
     
     # executed in ws.onMessage 15MIN interval
     def receive(self, wsPayload):
@@ -53,6 +57,9 @@ class MACDStateMachine:
                     # update inposition status
                     self.inPosition = True
 
+                    # update current price
+                    self.activeOrderPrice = order.price
+
                     # id and if order is TestNet ORder
                     return self.activeOrderID, self.isTestNet 
 
@@ -88,6 +95,7 @@ class MACDStateMachine:
 
             # B2. Active order filled AND stop loss places - check stop loss status to CLOSE TRADE or UPDATE STOP LOSS
             else:
+                print("TRY TO UPDATE STOPLOSS - ID:", self.stopLossOrderID)
                 stopLossOrder = self.account.getOrder(self.stopLossOrderID, self.pair, testNet=self.isTestNet)
 
                 # if filled CLOSE TRADE
@@ -98,7 +106,9 @@ class MACDStateMachine:
 
                     # update status
                     self.inPosition = False
+                    self.activeOrderPrice = 0.0
                     self.stopLossOrderPlaced = False
+                    self.stopLossPrice = 0.0
 
                     return None, self.isTestNet
                 
@@ -106,13 +116,17 @@ class MACDStateMachine:
                     ## get current price and adjust stop loss
                     lastClosePrice = wsPayload['closing']
                     
+                    print("Laste Close Price:", lastClosePrice)
+
                     ## get current stoploss order price
                     stopLossOrder = self.account.getOrder(self.stopLossOrderID, self.pair, self.isTestNet)
-                    
-                    newStopLossPrice = float(((100 - self.riskTolerancePercentage)/100) * lastClosePrice)
+                    print("Current Stop Loss Order:", stopLossOrder)
+
+                    newStopLossPrice = float(((100 - self.riskTolerancePercentage)/100) * float(lastClosePrice))
+                    print("New Stop Loss:", newStopLossPrice)
 
                     # if new stop loss price is greater than existing stop loss order price - update
-                    if newStopLossPrice > stopLossOrder.price:
+                    if newStopLossPrice > float(stopLossOrder.price):
                         print("UPDATING STOP LOSS")
                         print("Deleting sell order id:", self.stopLossOrderID)
 
@@ -128,7 +142,7 @@ class MACDStateMachine:
                         # place updated order
                         print("Placing new StopLoss Order at price " + str(newStopLossPrice) + ".")
                         
-                        newStopLossOrder = self.account.placeOrder(
+                        newStopLossOrder = self.account.placeStopLossOrder(
                             activeOrder,
                             riskTolerancePercentage=self.riskTolerancePercentage,
                             testNet=self.isTestNet
@@ -137,7 +151,8 @@ class MACDStateMachine:
                         # update status
                         self.stopLossOrderID = newStopLossOrder.orderID
 
-    
+                        return self.stopLossOrderID, self.isTestNet
+
     # conditionally place stop loss - executed in onMessage 2 second interval
     def placeStopLossIfActiveOrderFilled(self):
         # if in position but stoploss is not placed
@@ -160,6 +175,8 @@ class MACDStateMachine:
                 self.stopLossOrderPlaced = True
                 # update stop loss orderID
                 self.stopLossOrderID = stopLossOrder.orderID
+                # update stop loss price
+                self.stopLossPrice = stopLossOrder.price
 
                 return stopLossOrder, self.isTestNet
 
@@ -172,8 +189,14 @@ class MACDStateMachine:
         d['tradingPair'] = self.pair
         d['inPosition'] = self.inPosition
         d['activeOrderID'] = self.activeOrderID
-        d['stopLossOrderplaces'] = self.stopLossOrderPlaced
+        d['stopLossOrderplaced'] = self.stopLossOrderPlaced
         d['stopLossOrderID'] = self.stopLossOrderID
+
+        d['orderPrice'] = self.activeOrderPrice
+        d['stopLossPrice'] = self.stopLossPrice
+
+        # stoploss = self.account.getOrder(self.stopLossOrderID, self.pair, testNet=self.isTestNet)
+        # order = self.account.getOrder(self.activeOrderID, self.pair, testNet=self.isTestNet)
 
         return d
 
