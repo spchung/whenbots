@@ -1,6 +1,7 @@
 import config
 import datetime
 import websocket
+import kline_lookback_config
 from binance.client import Client
 from signal_generators import SimpleMacd
 from base_strategy import MACDStateMachine
@@ -19,8 +20,7 @@ print(startTimeStr)
 
 ## run 
 cc  = 'ethusdt' # must be lower case
-interval = '15m'
-lookback = 100
+interval, lookback = kline_lookback_config.FIVE_MINUTE
 
 socket = f"wss://stream.binance.com:9443/ws/{cc}@kline_{interval}"
 client = Client(config.API_KEY, config.API_SECRET)

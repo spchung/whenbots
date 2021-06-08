@@ -1,0 +1,3 @@
+FIFTTEN_MINUTE = ['15m', 100]
+
+FIVE_MINUTE = ['5m', 3.3333]

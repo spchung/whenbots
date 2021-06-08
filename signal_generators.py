@@ -143,13 +143,16 @@ class SimpleMacd:
 
             if msg["k"]["x"]:
                 
-                print("\n===== 15 MIN KLINE =====")
+                print("\n===== ACTION KLINE =====")
 
                 klineStartTimeStamp = msg["k"]["x"]
                 klineStartTime = datetime.datetime.fromtimestamp(klineStartTimeStamp/1000)
                 print(klineStartTime.strftime("%m/%d/%Y - %H:%M:%S"))
 
                 res = signal.generate(period=1)
+                ## print kline 
+                pprint.pprint(res[0])
+                
                 botState.receive(res[0])
 
             # place stop loss 
