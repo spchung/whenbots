@@ -30,12 +30,12 @@ symbol = "ETHUSDT"
 signal = SimpleMacd(client, symbol, lookback, interval)
 
 #BinanceAccount
-account = BinanceAccount(client, "USDT")
+account = BinanceAccount(client, symbol)
 
 # bot state
 botState = MACDStateMachine(account, symbol, isTestNet=True)
 
-ws = websocket.WebSocketApp(socket, on_message=signal.getOnMessage(signal, botState), on_close=signal.getOnClose())
+ws = websocket.WebSocketApp(socket, on_message=signal.getOnMessage(botState), on_close=signal.getOnClose())
 ws.on_open = signal.getOnOpen()
 
 ws.run_forever()
