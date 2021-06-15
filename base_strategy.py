@@ -1,8 +1,10 @@
-from binance_account import Order
 import sys
+import pprint
+from binance_account import Order
+
 
 class MACDStateMachine:
-    def __init__(self, account, pair, riskTolerancePercentage=2, USDTFundAmount=1000 ,isTestNet=False):
+    def __init__(self, account, pair, riskTolerancePercentage=10, USDTFundAmount=1000 ,isTestNet=False):
         # self.account.isTestNet=isTestNet
         self.account = account
 
@@ -16,6 +18,7 @@ class MACDStateMachine:
         self.inPosition=False
         
         # long order variables
+        self.activeOrder = None
         self.activeOrderID = None
 
         # stop loss
@@ -30,6 +33,7 @@ class MACDStateMachine:
     ## reset botstate -> after closing a trade
     def reset(self):
         self.inPosition = False
+        self.activeOrder = None
         self.activeOrderID = None
         self.activeOrderPrice = None
         self.stopLossPrice = None
@@ -51,6 +55,9 @@ class MACDStateMachine:
         # stoploss = self.account.getOrder(self.stopLossOrderID, self.pair, testNet=self.isTestNet)
         # order = self.account.getOrder(self.activeOrderID, self.pair, testNet=self.isTestNet)
 
+        d['riskTolerancePercentage'] = self.riskTolerancePercentage
+        d['trades'] = [ trade.toDict() for trade in self.account.trades]
+
         return d
 
     ## INTERVAL LOGIC - whenever a candle officially closes 
@@ -71,7 +78,10 @@ class MACDStateMachine:
                     # 2. MACD is in ascension
                     if macd > signal:
                         
-                        # MAKE ORDER 
+                        # MAKE ORDER
+                        print("MAKE TRADE at Kline:")
+                        pprint.pprint(wsKline.toDict())
+
                         # order = self.account.placeOrder(self.pair, fundPercentage=self.funPercentage, testNet=self.isTestNet)
                         order = self.account.placeMarketBuyOrder(
                             "USDT",
@@ -81,6 +91,9 @@ class MACDStateMachine:
                         )
 
                         trade = self.account.openTrade(order)
+
+                        # active order object
+                        self.activeOrder = order
 
                         # update current price
                         self.activeOrderPrice = order.price
@@ -100,16 +113,24 @@ class MACDStateMachine:
                 if self.inPosition:
                     
                     currStopLoss = wsKline.closePrice * float((100-self.riskTolerancePercentage)/100)
-
+                    
+                    print("new stop loss:", currStopLoss)
+                    
                     if currStopLoss > self.stopLossPrice:
-                        
+
                         # update stopLoss price
                         self.stopLossPrice = currStopLoss
+
+                        print("Updated Stop Loss -", self.stopLossPrice)
 
                     if wsKline.closePrice < self.stopLossPrice:
 
                         # sell
-                        stopLossOrder = self.account.placeStopLoss(self.activeOrderID, wsKline.closePrice, wsKline.klineCloseTime)
+                        stopLossOrder = self.account.placeMarketStopLoss(self.activeOrder)
+
+                        print("Closing Trade")
+                        print("stopLossOrder:", stopLossOrder.toDict())
+
                         fund = self.account.closeTrade(stopLossOrder)
 
                         # realigh fund amount 

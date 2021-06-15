@@ -210,8 +210,22 @@ class BinanceAccount:
         
         return Order.fromOrderPlacement(order)
 
-    def placeMarketStopLoss(self, order):
-        pass
+    def placeMarketStopLoss(self, order, testNet=False):
+        client = self.client
+
+        if testNet:
+            client = Client(config.TEST_API_KEY, config.TEST_API_SECRET, testnet=True)
+
+        quantity = self.roundQuantity(order.executedQty)
+
+        # valid = self.validateMarketOrder(quoteAsset, quoteAssetAmount, baseAssetPrice, quantity, testNet=testNet)
+
+        stopOrder = client.order_market_sell(
+            symbol=self.symbol,
+            quantity=quantity
+        )
+        
+        return Order.fromOrderPlacement(stopOrder)
     
     ## Trade 
     def openTrade(self, order):

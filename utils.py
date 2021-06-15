@@ -21,6 +21,17 @@ class WsKline:
         self.takerBaseAssetVolume=float(ws_kline['k']['V'])
         self.takerQuoteAssetVolume=float(ws_kline['k']['Q'])
 
+    def toDict(self):
+        d = dict()
+
+        d['time'] = self.klineCloseTime
+        d['open'] = self.openPrice
+        d['high'] = self.highPrice
+        d['low'] = self.lowPrice
+        d['close'] = self.closePrice
+
+        return d
+
 '''   
 class Trade:
     def __init__(self):

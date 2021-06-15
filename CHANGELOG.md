@@ -17,5 +17,10 @@ All notable changes to this project will be documented in this file.
 - Stop loss placing moved into main `intervalLogic` and uses Market Order
 - Stop loss order is not placed until stop loss price level is violated
 
-## [0.0.4] - ****-**-**
+## [0.0.4] - 2021-06-16
+- pymongo 
+- MongoDB instance
+- Market stop loss order placing
+
+## [0.0.5] - ****-**-**
 - Smart Order Module

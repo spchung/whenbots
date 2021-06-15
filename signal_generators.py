@@ -76,7 +76,7 @@ class SimpleMacd:
                 wsKline = WsKline(json.loads(message))
 
                 # log time stamp
-                print(wsKline.eventTime)
+                print(wsKline.eventTime, "-", wsKline.closePrice)
             
                 # print status and kline periodically
                 if datetime.datetime.strptime(wsKline.eventTime, "%m-%d-%Y %H:%M:%S").second % 7 == 0:

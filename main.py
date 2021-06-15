@@ -33,7 +33,7 @@ signal = SimpleMacd(client, symbol, lookback, interval)
 account = BinanceAccount(client, symbol)
 
 # bot state
-botState = MACDStateMachine(account, symbol, isTestNet=True)
+botState = MACDStateMachine(account, symbol, riskTolerancePercentage=0.5, USDTFundAmount=20, isTestNet=False)
 
 ws = websocket.WebSocketApp(socket, on_message=signal.getOnMessage(botState), on_close=signal.getOnClose())
 ws.on_open = signal.getOnOpen()
