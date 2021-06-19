@@ -25,6 +25,7 @@ interval, lookback = kline_lookback_config.FIVE_MINUTE
 socket = f"wss://stream.binance.com:9443/ws/{cc}@kline_{interval}"
 client = Client(config.API_KEY, config.API_SECRET)
 symbol = "ETHUSDT"
+indicators = ['EMAS', 'MACD']
 
 # signal generator
 signal = SimpleMacd(client, symbol, lookback, interval)
@@ -35,7 +36,8 @@ account = BinanceAccount(client, symbol)
 # bot state
 botState = MACDStateMachine(account, symbol, riskTolerancePercentage=0.5, USDTFundAmount=20, isTestNet=False)
 
-ws = websocket.WebSocketApp(socket, on_message=signal.getOnMessage(botState), on_close=signal.getOnClose())
+# set up ws class
+ws = websocket.WebSocketApp(socket, on_message=signal.getOnMessage(botState, indicators=indicators), on_close=signal.getOnClose())
 ws.on_open = signal.getOnOpen()
 
 ws.run_forever()

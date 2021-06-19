@@ -1,10 +1,11 @@
+from os import EX_CANTCREAT
 import sys
 import pprint
 from binance_account import Order
 
 
 class MACDStateMachine:
-    def __init__(self, account, pair, riskTolerancePercentage=10, USDTFundAmount=1000 ,isTestNet=False):
+    def __init__(self, account, symbol, riskTolerancePercentage=10, USDTFundAmount=1000 ,isTestNet=False):
         # self.account.isTestNet=isTestNet
         self.account = account
 
@@ -12,7 +13,7 @@ class MACDStateMachine:
         self.USDTFundAmount = USDTFundAmount
 
         self.isTestNet = isTestNet
-        self.pair = pair # trading pair
+        self.symbol = symbol # trading symbol
         
         # meta
         self.inPosition=False
@@ -43,7 +44,7 @@ class MACDStateMachine:
     def getState(self):
         d = dict()
         d['isTestNet'] = self.isTestNet
-        d['tradingPair'] = self.pair
+        d['symbol'] = self.symbol
         d['inPosition'] = self.inPosition
         d['activeOrderID'] = self.activeOrderID
         d['stopLossOrderplaced'] = self.stopLossOrderPlaced
@@ -61,16 +62,27 @@ class MACDStateMachine:
         return d
 
     ## INTERVAL LOGIC - whenever a candle officially closes 
-    def intervalLogic(self, *args):
+    def intervalLogic(self, wsKline, **kwargs):
         '''
         MAKE TRADES
         '''
         # input
-        emaShort, emaMedium, emaLong, macd, signal, hist, wsKline = args
+
+        if not 'EMAS' in kwargs:
+            raise Exception("MACDStateMachine.intervalLogic requires a EMA indicator object.")
+
+        if not 'MACD' in kwargs:
+            raise Exception("MACDStateMachine.intervalLogic requires a MACD indicator object.")
         
+        # extract EMA
+        emaShort, emaMedium, emaLong = kwargs['EMAS']
+
+        #extract MACD 
+        macd, signal, hist = kwargs['MACD']
+
         # log items
         ordePlaced = False
-        
+
         try:
             if not self.inPosition:
                 # 1. EMA are in ascension
@@ -106,6 +118,9 @@ class MACDStateMachine:
                         
                         # update inposition status
                         self.inPosition = True
+
+                        ## log state
+                        pprint.pprint(self.getState())
 
                         # id and if order is TestNet ORder
                         return self.activeOrderID, self.isTestNet
@@ -170,7 +185,7 @@ class MACDStateMachine:
                     
                     # MAKE ORDER 
                     order = self.account.placeSimpleOrder(
-                        self.pair, 
+                        self.symbol, 
                         wsKline.closePrice, 
                         side='BUY', 
                         testNet=self.isTestNet

@@ -22,5 +22,13 @@ All notable changes to this project will be documented in this file.
 - MongoDB instance
 - Market stop loss order placing
 
-## [0.0.5] - ****-**-**
+## [0.0.5] - 2021-06-19
+- mongodb database_manager singleton class
+- Signal generator now dynamically generates TA indicators by given input
+- `tradingPair` variable name depricated. Using `symbol` as per Binance convention
+- `Order` and `Trade` classes seperated from individual files and connects to mongodb cluster
+- SELECT, WRITE, and QUERY operations for class `Order` and `Trade`
+
+## [0.0.6] - ****-**-**
 - Smart Order Module
+- Depricated `SimpleMacd` singal_generator class and consolidate into one standard class

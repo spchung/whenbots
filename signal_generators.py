@@ -54,21 +54,62 @@ class SimpleMacd:
         return df
     
     ## get ema from DataFrame 
-    def EMAS(self, df, short=7, mid=25, long=99):
+    def EMAS(self, df, short=7, mid=25, long=99, period=1):
         closePrice = np.array(df['close'])
 
         shortEMA = talib.EMA(closePrice, short)
         mediumEMA = talib.EMA(closePrice, mid)
         longEMA = talib.EMA(closePrice, long)
 
-        return shortEMA, mediumEMA, longEMA
+
+        start = -1 - period
+        return (shortEMA[start:-1], mediumEMA[start:-1], longEMA[start:-1])
     
     ## get macd form DataFrame
-    def MACD(self, df, fast=12, slow=26, signal=9):
-        return talib.MACD(np.array(df['close']), fastperiod=fast, slowperiod=slow, signalperiod=signal)
+    def MACD(self, df, fast=12, slow=26, signal=9, period=1):
+        macd, signal, hist =talib.MACD(np.array(df['close']), fastperiod=fast, slowperiod=slow, signalperiod=signal)
+
+        start = -1 - period
+        return (macd[start:-1], signal[start:-1], hist[start:-1])
+
+    ## GENERATE INDICATORS - returns last n number of indicators
+    def generateIndicatorsPeriod(self, indicators, period=1):
+        # generate list of indicators according to input
+
+        # base df 
+        df = self.pricesDataFrame()
+
+        res = list()
+        for indicator in indicators:
+            
+            if indicator == "MACD":
+                res.append(self.MACD(df, period=period))
+            
+            elif indicator == "EMAS":
+                res.append(self.EMAS(df, period=period))
+
+        return res
+    
+    # return list of indicators generated from the last completed kline
+    def generateIndicatorsLatest(self, indicators):
+        # base df 
+        df = self.pricesDataFrame()
+
+        res = dict()
+        for indicator in indicators:
+            
+            if indicator == "MACD":
+                res0, res1, res2 = self.MACD(df, period=1)
+                res[indicator] = (res0[0], res1[0], res2[0])
+            
+            elif indicator == "EMAS":
+                res0, res1, res2 = self.EMAS(df, period=1)
+                res[indicator] = (res0[0], res1[0], res2[0])
+
+        return res
 
     ## ws helpers
-    def getOnMessage(self, botState):
+    def getOnMessage(self, botState, indicators=['EMAS']):
         def on_message(self, botState, ws, message):
 
             # this kline to WsKline instance
@@ -92,14 +133,13 @@ class SimpleMacd:
                     print("\n===== ACTION KLINE - "+ wsKline.interval +" =====")
                     print(wsKline.klineStartTime)
 
-                    # get data
-                    df = self.pricesDataFrame()
-                    ema_short, ema_medium, ema_long = self.EMAS(df)
-                    macd, signal, hist = self.MACD(df)
+                    # # get data
+                    indiactorDict = self.generateIndicatorsLatest(indicators)
 
+                    print(indiactorDict)
                     ## main loop trading logic
                     # use -2 index because -1 is the currently opened candle
-                    botState.intervalLogic(ema_short[-2], ema_medium[-2], ema_long[-2], macd[-2], signal[-2], hist[-2], wsKline)
+                    botState.intervalLogic(wsKline, **indiactorDict)
 
                 # check if stop loss reached
                 botState.continuousLogic(wsKline)
