@@ -7,6 +7,7 @@ from binance.client import Client
 import binance.enums as binanceEnums
 
 from models.order import Order
+from models.trade import Trade
 
 class BinanceAccount:
     def __init__(self, client, symbol, fundAmount=float('inf'), fundPercentage=0.1):
@@ -233,10 +234,10 @@ class BinanceAccount:
     def openTrade(self, order):
         
         trade = Trade()
-        trade.pair = order.symbol
+        trade.symbol = order.symbol
         trade.entryTime = order.time
         trade.positionType = 'LONG'
-        trade.entryUSDTAmount = order.getQuoteAmount()
+        trade.entryUSDTAmount = order.cummulativeQuoteQty
         trade.purchasedCoinAmount = order.executedQty
         trade.openOrderID = order.orderID
         trade.complete = False
@@ -245,20 +246,14 @@ class BinanceAccount:
 
         return trade
     
-    def closeTrade(self, order):
+    def closeTrade(self, order, trade):
 
-        trade = self.currentOpenTrade
         trade.complete = True
-        trade.exitUSDTAmount = order.getQuotaAmount()
+        trade.exitUSDTAmount = order.cummulativeQuoteQty
         trade.exitTime = order.time
-
-        # update account amount
-        self.USDTAmount = trade.exitUSDTAmount
+        trade.closeOrderID = order.orderID
         
-        # append to closed trades
-        self.closedTrades.append(trade)
-
-        return self.USDTAmount
+        return trade
     
     # order status
     def getOrder(self, orderId, symbol, testNet=False):
@@ -299,6 +294,7 @@ class BinanceAccount:
         return res
 
 ## Trade
+'''
 class Trade:
     def __init__(self):
         self.entryTime = None
@@ -328,7 +324,7 @@ class Trade:
         d['complete'] = self.complete
         d['exitUSDTAmount'] = self.exitUSDTAmount
         d['exitTime'] = self.exitTime
-
+'''
 '''
 ## order v2 -> derive price from fills
 class Order:

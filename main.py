@@ -3,7 +3,7 @@ import datetime
 import websocket
 import kline_lookback_config
 from binance.client import Client
-from signal_generators import SimpleMacd
+from signal_generators import SignalGenerator
 from base_strategy import MACDStateMachine
 from binance_account import BinanceAccount
 
@@ -28,7 +28,7 @@ symbol = "ETHUSDT"
 indicators = ['EMAS', 'MACD']
 
 # signal generator
-signal = SimpleMacd(client, symbol, lookback, interval)
+signal = SignalGenerator(client, symbol, lookback, interval)
 
 #BinanceAccount
 account = BinanceAccount(client, symbol)

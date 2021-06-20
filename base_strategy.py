@@ -1,8 +1,8 @@
 from os import EX_CANTCREAT
 import sys
 import pprint
-from binance_account import Order
-
+from models.order import Order
+from models.trade import Trade
 
 class MACDStateMachine:
     def __init__(self, account, symbol, riskTolerancePercentage=10, USDTFundAmount=1000 ,isTestNet=False):
@@ -18,6 +18,9 @@ class MACDStateMachine:
         # meta
         self.inPosition=False
         
+        # active trade
+        self.activeTrade = None
+
         # long order variables
         self.activeOrder = None
         self.activeOrderID = None
@@ -103,6 +106,7 @@ class MACDStateMachine:
                         )
 
                         trade = self.account.openTrade(order)
+                        self.activeTrade = Trade.insert(trade)
 
                         # active order object
                         self.activeOrder = order
@@ -146,10 +150,11 @@ class MACDStateMachine:
                         print("Closing Trade")
                         print("stopLossOrder:", stopLossOrder.toDict())
 
-                        fund = self.account.closeTrade(stopLossOrder)
+                        trade = self.account.closeTrade(stopLossOrder, self.activeTrade)
+                        trade = Trade.update(trade)
 
                         # realigh fund amount 
-                        self.USDTFundAmount = fund
+                        self.USDTFundAmount = trade.exitUSDTAmount
 
                         # reset bot state
                         self.reset()
@@ -164,7 +169,6 @@ class MACDStateMachine:
         '''
         pass
 
-    
     
     ## back testing
     def backTestIntervalLogic(self, *args):

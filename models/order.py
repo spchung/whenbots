@@ -85,26 +85,23 @@ class Order:
         order.orderID = orderPayload['orderId']
         order.clientOrderID = orderPayload['clientOrderId']
         order.symbol = orderPayload['symbol']
+        order.price = float(orderPayload['price'])
+        order.cummulativeQuoteQty = float(orderPayload['cummulativeQuoteQty'])
         order.origQty = float(orderPayload['origQty'])
         order.executedQty = float(orderPayload['executedQty'])
-        order.status = orderPayload['status'] # enum ['NEW', 'FILLED', 'CANCELED']
         order.timeInForce = orderPayload['timeInForce']
         order.type = orderPayload['type']
         order.side = orderPayload['side']
-        order.stopPrice = float(orderPayload['stopPrice'])
-        order.icebergQty = float(orderPayload['icebergQty'])
-        
-        if orderPayload['status'] == 'FILLED':
-            # derive price from quoteQty and purchased base asset QTY
-            quoteQty = float(orderPayload['cummulativeQuoteQty'])
-            executedQty = float(orderPayload['executedQty'])
-            order.price = quoteQty/executedQty
         
         if 'time' in orderPayload:
-            order.time = orderPayload['time']
+            order.time = datetime.fromtimestamp(orderPayload['time']/1000).strftime("%m-%d-%Y %H:%M:%S")
 
         if 'transactTime' in orderPayload:
-            order.time = orderPayload['transactTime']
+            order.time = datetime.fromtimestamp(orderPayload['transactTime']/1000).strftime("%m-%d-%Y %H:%M:%S")
+
+        order.stopPrice = float(orderPayload['stopPrice'])
+        order.icebergQty = float(orderPayload['icebergQty'])
+        order.status = orderPayload['status'] # enum ['NEW', 'FILLED', 'CANCELED']
         
         return order
 
@@ -116,10 +113,11 @@ class Order:
             d['_id'] = self._id
 
         d['isTestNet'] = self.isTestNet
-        d['symbol'] = self.symbol
         d['orderID'] = self.orderID
         d['clientOrderID'] = self.clientOrderID
+        d['symbol'] = self.symbol
         d['price'] = self.price
+        d['cummulativeQuoteQty'] = self.cummulativeQuoteQty
         d['origQty'] = self.origQty
         d['executedQty'] = self.executedQty
         d['timeInForce'] = self.timeInForce
@@ -133,9 +131,9 @@ class Order:
         else:
             d['time'] = self.time
 
-        d['status'] = self.status
         d['stopPrice'] = self.stopPrice
         d['icebergQty'] = self.icebergQty
+        d['status'] = self.status
 
         return d
 

@@ -53,22 +53,24 @@ class Trade:
         d['complete'] = self.complete
         d['exitUSDTAmount'] = self.exitUSDTAmount
         d['exitTime'] = self.exitTime
+
+        return d
     
     @staticmethod
-    def fronDict(tradeDict):
+    def fromDict(tradeDict):
         
         trade = Trade()
         trade._id = tradeDict['_id']
         trade.entryTime = tradeDict['entryTime']
         trade.positionType = tradeDict['positionType']
         trade.symbol = tradeDict['symbol']
-        trade.entryUSDTAmount = trade['entryUSDTAmount']
-        trade.purchasedCoinAmount = trade['purchasedCoinAmount']
-        trade.openOrderID = trade['openOrderID']
-        trade.closeOrderID = trade['closeOrderID']
-        trade.complete = trade['complete']
-        trade.exitUSDTAmount = trade['exitUSDTAmount'] 
-        trade.exitTime = trade['exitTime']
+        trade.entryUSDTAmount = tradeDict['entryUSDTAmount']
+        trade.purchasedCoinAmount = tradeDict['purchasedCoinAmount']
+        trade.openOrderID = tradeDict['openOrderID']
+        trade.closeOrderID = tradeDict['closeOrderID']
+        trade.complete = tradeDict['complete']
+        trade.exitUSDTAmount = tradeDict['exitUSDTAmount'] 
+        trade.exitTime = tradeDict['exitTime']
 
         return trade
 
@@ -80,11 +82,11 @@ class Trade:
 
         res = collection.insert_one(trade.toDict())
 
-        if res.acknowledged:
-            return Trade.get(res.inserted_id)
+        if not res.acknowledged:
+            return None
         
-        return None
-    
+        return Trade.get(res.inserted_id)
+        
     @staticmethod
     def get(_id):
         mongo = DatabaseManager.connect(dbName='whenbots')
@@ -92,7 +94,8 @@ class Trade:
 
         res = collection.find_one({'_id':ObjectId(_id)})
 
-        return res
+        trade = Trade.fromDict(res)
+        return trade
     
     @staticmethod
     def query(sortBy=[("entryTime", pymongo.DESCENDING)], limit=10, **kwargs):
@@ -107,3 +110,22 @@ class Trade:
             res.append(Trade.fromDict(trades))
         
         return res
+    
+    @staticmethod
+    def update(trade, upsert=False):
+        mongo = DatabaseManager.connect(dbName='whenbots')
+        collection = mongo[Trade.collectionName]
+
+        searchTerm = dict()
+        searchTerm['_id'] = trade._id
+
+        res = collection.update_one(searchTerm,{
+            "$set":trade.toDict()
+        }, upsert=upsert)
+
+        # update fail
+        if not res.acknowledged is True:
+            raise Exception(f"UPDATE trade object with _id:{trade._id} failed.")
+
+        return Trade.get(trade._id)
+

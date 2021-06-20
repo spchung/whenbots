@@ -9,7 +9,7 @@ from functools import partial
 
 from utils import WsKline
 
-class SimpleMacd:
+class SignalGenerator:
     def __init__(self, binanceClient, symbol, lookback, interval):
         self.client = binanceClient
         self.symbol = symbol
