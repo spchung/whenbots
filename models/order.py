@@ -23,8 +23,9 @@ class Order:
         self._id = None
         self.isTestNet=False
         self.orderID = -1
-        self.clientOrderID = -1
+        self.clientOrderID = None
         self.symbol = None
+        self.cummulativeQuoteQty = None
         self.origQty = None
         self.executedQty = None
         self.status = None
@@ -47,6 +48,7 @@ class Order:
         order.clientOrderID = orderPayload['clientOrderId']
         order.symbol = orderPayload['symbol']
         order.origQty = float(orderPayload['origQty'])
+        order.cummulativeQuoteQty = float(orderPayload['cummulativeQuoteQty'])
         order.executedQty = float(orderPayload['executedQty'])
         order.status = orderPayload['status'] # enum ['NEW', 'FILLED', 'CANCELED']
         order.timeInForce = orderPayload['timeInForce']

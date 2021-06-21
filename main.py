@@ -34,7 +34,7 @@ signal = SignalGenerator(client, symbol, lookback, interval)
 account = BinanceAccount(client, symbol)
 
 # bot state
-botState = MACDStateMachine(account, symbol, riskTolerancePercentage=0.5, USDTFundAmount=20, isTestNet=False)
+botState = MACDStateMachine(account, symbol, riskTolerancePercentage=0.5, USDTFundAmount=15, isTestNet=False)
 
 # set up ws class
 ws = websocket.WebSocketApp(socket, on_message=signal.getOnMessage(botState, indicators=indicators), on_close=signal.getOnClose())

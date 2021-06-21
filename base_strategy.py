@@ -89,7 +89,8 @@ class MACDStateMachine:
         try:
             if not self.inPosition:
                 # 1. EMA are in ascension
-                if emaShort > emaMedium > emaLong:
+                # if emaShort > emaMedium > emaLong:
+                if emaShort > emaMedium:
                     # 2. MACD is in ascension
                     if macd > signal:
                         
@@ -169,7 +170,6 @@ class MACDStateMachine:
         '''
         pass
 
-    
     ## back testing
     def backTestIntervalLogic(self, *args):
         '''
