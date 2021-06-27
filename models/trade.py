@@ -24,7 +24,7 @@ class Trade:
         self.entryTime = None
         self.positionType = None # enum ['LONG', 'SHORT']
         self.symbol = None
-        self.entryUSDTAmount = 0.0
+        self.entryQuoteAmount = 0.0
         self.purchasedCoinAmount = 0.0
         
         # orders
@@ -46,7 +46,7 @@ class Trade:
         d['entryTime'] = self.entryTime
         d['positionType'] = self.positionType
         d['symbol'] = self.symbol
-        d['entryUSDTAmount'] = self.entryUSDTAmount
+        d['entryQuoteAmount'] = self.entryQuoteAmount
         d['purchasedCoinAmount'] = self.purchasedCoinAmount
         d['openOrderID'] = self.openOrderID
         d['closeOrderID'] = self.closeOrderID
@@ -64,7 +64,7 @@ class Trade:
         trade.entryTime = tradeDict['entryTime']
         trade.positionType = tradeDict['positionType']
         trade.symbol = tradeDict['symbol']
-        trade.entryUSDTAmount = tradeDict['entryUSDTAmount']
+        trade.entryQuoteAmount = tradeDict['entryQuoteAmount']
         trade.purchasedCoinAmount = tradeDict['purchasedCoinAmount']
         trade.openOrderID = tradeDict['openOrderID']
         trade.closeOrderID = tradeDict['closeOrderID']

@@ -5,12 +5,12 @@ from models.order import Order
 from models.trade import Trade
 
 class MACDStateMachine:
-    def __init__(self, account, symbol, riskTolerancePercentage=10, USDTFundAmount=1000 ,isTestNet=False):
+    def __init__(self, account, symbol, riskTolerancePercentage=10, quoteFundAmount=1000 ,isTestNet=False):
         # self.account.isTestNet=isTestNet
         self.account = account
 
         # fund 
-        self.USDTFundAmount = USDTFundAmount
+        self.quoteFundAmount = quoteFundAmount
 
         self.isTestNet = isTestNet
         self.symbol = symbol # trading symbol
@@ -101,7 +101,7 @@ class MACDStateMachine:
                         # order = self.account.placeOrder(self.pair, fundPercentage=self.funPercentage, testNet=self.isTestNet)
                         order = self.account.placeMarketBuyOrder(
                             "USDT",
-                            self.USDTFundAmount,
+                            self.quoteFundAmount,
                             wsKline.closePrice,
                             self.isTestNet
                         )
@@ -155,7 +155,7 @@ class MACDStateMachine:
                         trade = Trade.update(trade)
 
                         # realigh fund amount 
-                        self.USDTFundAmount = trade.exitUSDTAmount
+                        self.quoteFundAmount = trade.exitUSDTAmount
 
                         # reset bot state
                         self.reset()
@@ -217,12 +217,3 @@ class MACDStateMachine:
                 stopLossOrder = self.account.placeSimpleOrder(self.pair, wsKline.closePrice, side='SELL')
                 closedTrade = self.account.closeTrade(stopLossOrder)
 
-
-'''
-ETH TEST:
-target 1%
-risk tolerance 0.5%
-'''
-
-# class MACDTrade:
-#     def __init__(self, botState):

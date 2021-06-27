@@ -1,11 +1,18 @@
+import os, sys
+currentdir = os.path.dirname(os.path.realpath(__file__))
+parentdir = os.path.dirname(currentdir)
+sys.path.append(parentdir)
+
 import config
 import datetime
-import websocket
 import kline_lookback_config
 from binance.client import Client
 from signal_generators import SignalGenerator
-from base_strategy import MACDStateMachine
 from binance_account import BinanceAccount
+
+from models.order import Order
+
+from utils import WsKline
 
 ## API_KEY
 api_key = config.API_KEY
@@ -25,7 +32,6 @@ interval, lookback = kline_lookback_config.FIVE_MINUTE
 socket = f"wss://stream.binance.com:9443/ws/{cc}@kline_{interval}"
 client = Client(config.API_KEY, config.API_SECRET)
 symbol = "BNBBUSD"
-indicators = ['EMAS', 'MACD']
 
 # signal generator
 signal = SignalGenerator(client, symbol, lookback, interval)
@@ -33,11 +39,15 @@ signal = SignalGenerator(client, symbol, lookback, interval)
 #BinanceAccount
 account = BinanceAccount(client, symbol)
 
-# bot state
-botState = MACDStateMachine(account, symbol, riskTolerancePercentage=0.5, quoteFundAmount=15, isTestNet=False)
+symbols = config.TRACKED_SYMBOLS
 
-# set up ws class
-ws = websocket.WebSocketApp(socket, on_message=signal.getOnMessage(botState, indicators=indicators), on_close=signal.getOnClose())
-ws.on_open = signal.getOnOpen()
+# get all trade symbols
+for symbol in symbols:
+    # get all orders uder this symbol
+    orders = client.get_all_orders(
+        symbol=symbol
+    )
 
-ws.run_forever()
+    for order in orders:
+        order = Order.fromGetOrder(order)
+        Order.update(order)

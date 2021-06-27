@@ -1,3 +1,10 @@
+## import from parent
+import os, sys
+currentdir = os.path.dirname(os.path.realpath(__file__))
+parentdir = os.path.dirname(currentdir)
+sys.path.append(parentdir)
+
+
 import config 
 import datetime
 import pprint
@@ -57,8 +64,6 @@ trade = Trade.update(trade)
 # res = order_coll.update_one({'orderID':order.orderID}, {
 #         "$set":order.toDict()
 #     }, upsert=True)
-
-
 
 
 '''

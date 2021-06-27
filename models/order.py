@@ -139,10 +139,6 @@ class Order:
 
         return d
 
-    # quota amount 
-    def getQuoteAmount(self):
-        return self.executedQty * self.price
-
     # DB classes 
     @staticmethod
     def fromDict(orderRes):
@@ -186,6 +182,23 @@ class Order:
         order = Order.fromDict(res)
 
         return order
+
+    @staticmethod
+    def update(order):
+        mongo = DatabaseManager.connect(dbName='whenbots')
+        collection = mongo[Order.collectionName]
+
+        res = collection.update_one(
+            {
+                "orderID":order.orderID
+            },
+            {
+                "$set":order.toDict()
+            },
+            upsert=True
+        )
+
+        return res.acknowledged
 
     @staticmethod
     def getWithOrderID(binanceOrderID):
