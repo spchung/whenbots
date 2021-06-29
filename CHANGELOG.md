@@ -29,6 +29,10 @@ All notable changes to this project will be documented in this file.
 - `Order` and `Trade` classes seperated from individual files and connects to mongodb cluster
 - SELECT, WRITE, and QUERY operations for class `Order` and `Trade`
 
-## [0.0.6] - ****-**-**
-- Smart Order Module
+## [0.0.6] - 2021-06-29
+- RunSettings class and mongo collection
+- Get bot and websocket variables dynamically from RunSettings instead for static variables
 - Depricated `SimpleMacd` singal_generator class and consolidate into one standard class
+
+## [0.0.7] - ****-**-**
+- Smart Order Module

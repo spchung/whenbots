@@ -107,7 +107,7 @@ class Trade:
         res = list()
 
         for trade in trades:
-            res.append(Trade.fromDict(trades))
+            res.append(Trade.fromDict(trade))
         
         return res
     
