@@ -31,27 +31,13 @@ class RunSetting:
         self.testNet = False
         self.indicators = list()
 
-    '''
-    @staticmethod
-    def fromDict(settingsDict):
-        settings = RunSettings()
-
-        settings._id = settingsDict['_id']
-        settings.name = settingsDict['nam']
-        settings.slug = settingsDict['slug']
-        settings.websocketSymbol = settingsDict['websocketSymbol']
-        settings.symbol = settingsDict['symbol']
-        settings.tradeInterval = settingsDict['tradeInterval']
-        settings.accountID = settingsDict['accountID']
-        settings.riskTolerancePercentage = settingsDict['riskTolerancePercentage']
-        settings.testNet = settingsDict['testNet']
-        settings.indicators = settingsDict['indicators']
-    
-        return settings
-    '''
-
     def toDict(self):
-        return vars(self)
+        res = vars(self)
+        
+        if '_id' in res and res['_id'] is None:
+            del res['_id']
+        
+        return res
 
     @staticmethod
     def fromDict(settingsDict):

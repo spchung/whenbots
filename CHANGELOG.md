@@ -34,5 +34,10 @@ All notable changes to this project will be documented in this file.
 - Get bot and websocket variables dynamically from RunSettings instead for static variables
 - Depricated `SimpleMacd` singal_generator class and consolidate into one standard class
 
-## [0.0.7] - ****-**-**
+## [0.0.7] - 2021-07-04
+- `resumeRun` method on MACDStateMachine, allows the class to resume to its last position if there is an unfinished Run record in the database. Teh `resumeRun` method instantiates an instance of MACDStateMachine and then derives its state from the Run record, which is associated to a trade, which is assocated to an order.
+- bug fixes to made to account.placeStopLossOrder
+- Run class and mongo collection 
+
+## [0.0.8] - ****-**-**
 - Smart Order Module

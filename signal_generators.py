@@ -135,8 +135,8 @@ class SignalGenerator:
 
                     # # get data
                     indiactorDict = self.generateIndicatorsLatest(indicators)
+                    pprint.pprint(indiactorDict)
 
-                    print(indiactorDict)
                     ## main loop trading logic
                     # use -2 index because -1 is the currently opened candle
                     botState.intervalLogic(wsKline, **indiactorDict)

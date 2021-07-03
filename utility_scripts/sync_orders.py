@@ -49,5 +49,6 @@ for symbol in symbols:
     )
 
     for order in orders:
+       
         order = Order.fromGetOrder(order)
         Order.update(order)

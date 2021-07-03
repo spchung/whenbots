@@ -87,7 +87,6 @@ class Order:
         order.orderID = orderPayload['orderId']
         order.clientOrderID = orderPayload['clientOrderId']
         order.symbol = orderPayload['symbol']
-        order.price = float(orderPayload['price'])
         order.cummulativeQuoteQty = float(orderPayload['cummulativeQuoteQty'])
         order.origQty = float(orderPayload['origQty'])
         order.executedQty = float(orderPayload['executedQty'])
@@ -104,6 +103,11 @@ class Order:
         order.stopPrice = float(orderPayload['stopPrice'])
         order.icebergQty = float(orderPayload['icebergQty'])
         order.status = orderPayload['status'] # enum ['NEW', 'FILLED', 'CANCELED']
+        
+        if order.status == "FILLED":
+            order.price = float(orderPayload['cummulativeQuoteQty'])/float(orderPayload['executedQty'])
+        else:
+            order.price = float(orderPayload['price'])
         
         return order
 
@@ -147,11 +151,13 @@ class Order:
         order.isTestNet = orderRes['isTestNet']
         order.orderID = orderRes['orderID']
         order.clientOrderID = orderRes['clientOrderID']
+        order.cummulativeQuoteQty = orderRes['cummulativeQuoteQty']
         order.symbol = orderRes['symbol']
         order.origQty = orderRes['origQty']
         order.executedQty = orderRes['executedQty']
         order.status = orderRes['status']
         order.timeInForce = orderRes['timeInForce']
+        order.price = orderRes['price']
         order.type = orderRes['type']
         order.side = orderRes['side']
         order.time = orderRes['time']
@@ -197,8 +203,15 @@ class Order:
             },
             upsert=True
         )
-
-        return res.acknowledged
+        
+        if res.acknowledged:
+            if res.matched_count == 1:
+                if hasattr(res, 'upsertedId'):
+                    return Order.get(res.upsertedId)
+                else:
+                    return Order.getWithOrderID(order.orderID)
+        
+        return None
 
     @staticmethod
     def getWithOrderID(binanceOrderID):
@@ -207,7 +220,12 @@ class Order:
 
         res = collection.find_one({'orderID':binanceOrderID})
 
-        return res
+        if res is None:
+            return res
+        
+        order = Order.fromDict(res)
+
+        return order
     
     @staticmethod
     def query(sortBy=[("time", pymongo.DESCENDING)], limit=10, **kwargs):

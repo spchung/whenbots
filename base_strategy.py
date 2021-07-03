@@ -3,6 +3,8 @@ import sys
 import pprint
 from models.order import Order
 from models.trade import Trade
+from models.run import Run
+from models.run_setting import RunSetting
 
 class MACDStateMachine:
     def __init__(self, account, symbol, riskTolerancePercentage=10, quoteFundAmount=1000 ,isTestNet=False):
@@ -34,6 +36,48 @@ class MACDStateMachine:
         self.stopLossPrice = None
         self.activeOrderPrice = None
     
+    # initiate state from a unfinished run 
+    @staticmethod
+    def resumeRun(account, run):
+        # Run Setting
+        runSettingId = run.runSettingId
+        runSetting = RunSetting.get(runSettingId)
+
+        # Trade information
+        openTradeId = run.currentOpenTradeId
+        openTrade = Trade.get(openTradeId)
+
+        # opened Order information
+        openOrderID = openTrade.openOrderID
+        openOrder = Order.getWithOrderID(openOrderID)
+
+        print(openOrder.toDict())
+
+        # resume bot state basic fields
+        botState = MACDStateMachine(
+            account,
+            symbol=runSetting.symbol,
+            riskTolerancePercentage=runSetting.riskTolerancePercentage,
+            quoteFundAmount=openOrder.cummulativeQuoteQty,
+            isTestNet=runSetting.testNet
+        )
+
+        # assign state variables
+        botState.inPosition = True
+        botState.activeOrderID = openOrder.orderID
+        botState.activeOrderPrice = openOrder.price
+
+        # assign active order instace 
+        botState.activeOrder = openOrder
+
+        # assign active trade instance
+        botState.activeTrade = openTrade
+
+        # calculate stop loss
+        botState.stopLossPrice = openOrder.price * float((100-botState.riskTolerancePercentage)/100)
+
+        return botState
+
     ## reset botstate -> after closing a trade
     def reset(self):
         self.inPosition = False
@@ -55,6 +99,7 @@ class MACDStateMachine:
 
         d['orderPrice'] = self.activeOrderPrice
         d['stopLossPrice'] = self.stopLossPrice
+        d['quoteFundAmount'] = self.quoteFundAmount
 
         # stoploss = self.account.getOrder(self.stopLossOrderID, self.pair, testNet=self.isTestNet)
         # order = self.account.getOrder(self.activeOrderID, self.pair, testNet=self.isTestNet)
@@ -89,8 +134,8 @@ class MACDStateMachine:
         try:
             if not self.inPosition:
                 # 1. EMA are in ascension
-                # if emaShort > emaMedium > emaLong:
-                if emaShort > emaMedium:
+                # if emaShort > emaMedium:
+                if emaShort > emaMedium > emaLong:
                     # 2. MACD is in ascension
                     if macd > signal:
                         
@@ -129,6 +174,10 @@ class MACDStateMachine:
 
                         # id and if order is TestNet ORder
                         return self.activeOrderID, self.isTestNet
+                    else:
+                        print("\nMACD BELOW SIGNAL - TRADE REJECTED\n")
+                else:
+                    print("EMAS NOT ASCENDING - TRADE REJECTED")
             else:
                 if self.inPosition:
                     
@@ -144,6 +193,9 @@ class MACDStateMachine:
                         print("Updated Stop Loss -", self.stopLossPrice)
 
                     if wsKline.closePrice < self.stopLossPrice:
+                        
+                        # dev
+                        print("SELLING")
 
                         # sell
                         stopLossOrder = self.account.placeMarketStopLoss(self.activeOrder)
