@@ -40,4 +40,8 @@ All notable changes to this project will be documented in this file.
 - Run class and mongo collection 
 
 ## [0.0.8] - ****-**-**
+- Bot program controller
+    - `master.py` invokes `run_bot.py` as a subprecess as receives outputs from `run_bot.py` and print to its own output.
+
+## [0.0.9] - ****-**-**
 - Smart Order Module
