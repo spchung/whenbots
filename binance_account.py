@@ -25,6 +25,18 @@ class BinanceAccount:
         self.trades = list() # list of all trades
         self.currentOpenTrade = None
         # self.USDTAmount = None
+
+    # preflight checks -> check if quote amount is enough and run setting is viable
+    def preflight(self, runSetting, quoteFundAmount):
+        # 1. make sure quote amoung is enough
+        quoteAsset = runSetting.quoteAsset
+        res = self.client.get_asset_balance(asset=quoteAsset)
+        accountQuoteAmount = float(res['free'])
+
+        if not accountQuoteAmount > quoteFundAmount:
+            raise Exception("Insufficient "+ quoteAsset+ " balance.")
+        
+        return True
         
     # extract symbol info into instance variables
     def extractFilters(self, symbol_info):

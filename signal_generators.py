@@ -117,7 +117,7 @@ class SignalGenerator:
                 wsKline = WsKline(json.loads(message))
 
                 # log time stamp
-                print(wsKline.eventTime, "-", wsKline.closePrice)
+                print(wsKline.eventTime, "-", wsKline.closePrice, flush=True)
             
                 # print status and kline periodically
                 if datetime.datetime.strptime(wsKline.eventTime, "%m-%d-%Y %H:%M:%S").second % 7 == 0:
@@ -151,13 +151,7 @@ class SignalGenerator:
     
     def getOnOpen(self):
         def on_open(ws):
-            print("WS connection established for SimpleMacd Strategy")
-            print("Last three candles:")
-
-            df = self.pricesDataFrame()
-            length = len(df)
-            pprint.pprint(df[length-3:])
-            print("\n")
+            print("WS connection established\n", flush=True)
 
         return on_open
     

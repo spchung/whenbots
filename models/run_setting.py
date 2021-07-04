@@ -25,6 +25,8 @@ class RunSetting:
         self.slug = None
         self.websocketSymbol = None
         self.symbol = None
+        self.baseAsset = None
+        self.quoteAsset = None
         self.tradeInterval = None
         self.accountID = None # reservation for account system
         self.riskTolerancePercentage = None
